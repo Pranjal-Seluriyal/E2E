@@ -59,11 +59,11 @@ class RateLimiter:
         key = f"rate_limit:{self.key_prefix}:{identifier}"
         
         # 2. Execute sliding window check in Redis
-        r = get_redis_client()
-        now_ms = int(time.time() * 1000)
-        clear_before_ms = now_ms - (self.window_seconds * 1000)
-        
         try:
+            r = get_redis_client()
+            now_ms = int(time.time() * 1000)
+            clear_before_ms = now_ms - (self.window_seconds * 1000)
+            
             pipe = r.pipeline()
             # Clean old expired requests
             pipe.zremrangebyscore(key, 0, clear_before_ms)
@@ -87,7 +87,9 @@ class RateLimiter:
             pipe.expire(key, self.window_seconds)
             await pipe.execute()
             
-        except redis.RedisError as e:
+        except HTTPException:
+            raise
+        except Exception as e:
             # Fail open in production to prevent Redis outage from blocking application traffic
             logger.error(f"Redis rate limiter failed: {str(e)}. Failing open.")
             return

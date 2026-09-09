@@ -84,7 +84,9 @@ class ChatService:
         # We will import the WebSocket manager inside route or handle it reactively
         return msg
 
-    async def get_device_envelopes(self, user_id: UUID, device_id: str, unread_only: bool = True) -> List[Dict]:
+    async def get_device_envelopes(
+        self, user_id: UUID, device_id: str, unread_only: bool = True, undelivered_only: bool = False
+    ) -> List[Dict]:
         # Verify device belongs to user
         device = await self.device_repo.get_device(user_id, device_id)
         if not device:
@@ -93,7 +95,9 @@ class ChatService:
                 detail="Device does not belong to you or does not exist"
             )
 
-        envelopes_data = await self.chat_repo.get_device_envelopes(device_id, unread_only)
+        envelopes_data = await self.chat_repo.get_device_envelopes(
+            device_id, unread_only=unread_only, undelivered_only=undelivered_only
+        )
         results = []
         for env, msg in envelopes_data:
             results.append({

@@ -104,10 +104,14 @@ class ChatRepository:
         await self.db.flush()
         return message
 
-    async def get_device_envelopes(self, recipient_device_id: str, unread_only: bool = True) -> List[Tuple[MessageEnvelope, Message]]:
+    async def get_device_envelopes(
+        self, recipient_device_id: str, unread_only: bool = True, undelivered_only: bool = False
+    ) -> List[Tuple[MessageEnvelope, Message]]:
         """Retrieves messages/envelopes addressed to a specific device."""
         q = select(MessageEnvelope, Message).join(Message, MessageEnvelope.message_id == Message.id)
-        if unread_only:
+        if undelivered_only:
+            q = q.filter(MessageEnvelope.recipient_device_id == recipient_device_id, MessageEnvelope.status == "sent")
+        elif unread_only:
             q = q.filter(MessageEnvelope.recipient_device_id == recipient_device_id, MessageEnvelope.status != "read")
         else:
             q = q.filter(MessageEnvelope.recipient_device_id == recipient_device_id)

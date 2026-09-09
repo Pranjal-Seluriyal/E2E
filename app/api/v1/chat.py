@@ -191,7 +191,7 @@ async def websocket_endpoint(
 
     # Deliver pending offline messages
     try:
-        offline_envs = await service.get_device_envelopes(user_id, device_id, unread_only=True)
+        offline_envs = await service.get_device_envelopes(user_id, device_id, undelivered_only=True)
         for env in offline_envs:
             event = {
                 "type": "message",
